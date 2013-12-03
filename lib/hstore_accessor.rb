@@ -1,6 +1,7 @@
 require "hstore_accessor/version"
 require "active_support"
 require "active_record"
+require "oj"
 
 module HstoreAccessor
   extend ActiveSupport::Concern
@@ -16,7 +17,7 @@ module HstoreAccessor
 
   SERIALIZERS = {
     :array    => -> value { (value && value.join(SEPARATOR)) || nil },
-    :hash     => -> value { (value && value.to_json) || nil },
+    :hash     => -> value { (value && Oj.dump(value)) || nil },
     :time     => -> value { value.to_i },
     :boolean  => -> value { (value.to_s == "true").to_s },
     :date     => -> value { (value && value.to_s) || nil }
@@ -24,7 +25,7 @@ module HstoreAccessor
 
   DESERIALIZERS = {
     :array    => -> value { (value && value.split(SEPARATOR)) || nil },
-    :hash     => -> value { (value && JSON.parse(value)) || nil },
+    :hash     => -> value { (value && Oj.load(value)) || nil },
     :integer  => -> value { value.to_i },
     :float    => -> value { value.to_f },
     :time     => -> value { Time.at(value.to_i) },
